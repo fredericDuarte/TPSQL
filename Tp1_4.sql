@@ -108,11 +108,51 @@ on pe.REF_PRODUIT = de.REF_PRODUIT
 where pe.CODE_CATEGORIE = 2 
 and  pe.NO_FOURNISSEUR = 2
 and d.NO_COMMANDE = de.NO_COMMANDE 
+);
+
+select  p.REF_PRODUIT, p.NOM_PRODUIT
+from produits p
+where
+not exists (
+select de.REF_PRODUIT
+from  details_commandes de
+join commandes ce
+on ce.NO_COMMANDE = de.NO_COMMANDE
+join clients cl
+on cl.CODE_CLIENT =  ce.CODE_CLIENT 
+where cl.VILLE like ("Paris")
+and de.REF_PRODUIT = p.REF_PRODUIT
+);
+
+select p.NOM_PRODUIT,p.UNITES_STOCK
+from produits p
+where p.UNITES_STOCK <
+( select avg(pe.UNITES_STOCK)  from produits pe ); 
+
+select c.NO_COMMANDE, c.DATE_COMMANDE , c.PORT
+from commandes c
+join clients cl 
+on cl.CODE_CLIENT = c.CODE_CLIENT
+where c.PORT > ( select avg(ce.PORT) from commandes ce 
+				  where ce.CODE_CLIENT = c.CODE_CLIENT );
+                  
+
+select p.NOM_PRODUIT,p.UNITES_STOCK
+from produits p
+where p.UNITES_STOCK > all
+( select max(pe.UNITES_STOCK) from produits pe where pe.CODE_CATEGORIE = 3 group by pe.REF_PRODUIT );  
+
+select p.NOM_PRODUIT,p.UNITES_STOCK, f.SOCIETE
+from produits p 
+join fournisseurs f
+on  p.NO_FOURNISSEUR = f.NO_FOURNISSEUR 
+where p.UNITES_STOCK < 
+( select avg(pe.UNITES_STOCK)  from produits pe where pe.NO_FOURNISSEUR = f.NO_FOURNISSEUR ); 
 
 
-)
-
-
+select e.NOM, e.FONCTION, e.SALAIRE, concat( round( e.SALAIRE / b.masse * 100 ) , "%") as MASSE
+from employes e, (select sum(salaire) as masse, FONCTION from employes group by FONCTION ) b
+where b.FONCTION = e.FONCTION;
 
 
 
